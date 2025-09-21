@@ -1,0 +1,218 @@
+<!doctype html> 
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Flores Amarillas - Detalle</title>
+  <style>
+    :root{
+      --bg:#f6f8fb;
+      --leaf:#2f8f4a;
+      --petal:#ffd54a; /* amarillo claro */
+      --petal2:#ffb300; /* amarillo más intenso */
+    }
+
+    html,body{height:100%;margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial}
+    body{background:linear-gradient(180deg,var(--bg),#fff);display:flex;align-items:center;justify-content:center;}
+
+    .card{
+      width:880px;
+      max-width:95vw;
+      height:560px;
+      background:linear-gradient(180deg,#ffffff 0%, #fbfbff 100%);
+      border-radius:18px;
+      box-shadow:0 8px 30px rgba(17,24,39,0.12);
+      padding:18px;display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden;
+    }
+
+    header{display:flex;justify-content:space-between;align-items:center}
+    h1{font-size:20px;margin:0;color:#223}
+    p.subtitle{margin:0;color:#4b5563;font-size:13px}
+
+    #canvas{
+      flex:1;border-radius:12px;background:linear-gradient(180deg,#eaf7eb, #fefbe9);position:relative;overflow:hidden;cursor:crosshair;border:1px dashed rgba(0,0,0,0.04)
+    }
+
+    .controls{display:flex;gap:8px}
+    button{background:#0f172a;color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer}
+    button.secondary{background:#334155}
+
+    .flower{
+      position:absolute;transform-origin:center center;pointer-events:none;
+      animation:float 6s ease-in-out infinite, pop 0.35s ease-out;
+    }
+
+    @keyframes float{
+      0%{transform:translateY(0) rotate(0deg)}
+      50%{transform:translateY(-6px) rotate(3deg)}
+      100%{transform:translateY(0) rotate(0deg)}
+    }
+
+    @keyframes pop{
+      0%{transform:scale(0.1)}
+      80%{transform:scale(1.06)}
+      100%{transform:scale(1)}
+    }
+
+    .hint{position:absolute;right:12px;bottom:12px;background:rgba(255,255,255,0.7);padding:6px 8px;border-radius:8px;font-size:12px}
+
+    footer{display:flex;justify-content:space-between;align-items:center}
+
+    .flower-label{position:absolute;left:12px;top:12px;background:rgba(255,255,255,0.85);padding:6px 10px;border-radius:10px;font-size:13px}
+
+    /* frase personalizada */
+    .frase {
+      position:absolute;
+      bottom:30px;
+      left:50%;
+      transform:translateX(-50%);
+      background:rgba(255,255,255,0.8);
+      padding:12px 18px;
+      border-radius:14px;
+      font-size:18px;
+      color:#374151;
+      text-align:center;
+      font-weight:500;
+      box-shadow:0 4px 12px rgba(0,0,0,0.1);
+      max-width:80%;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <header>
+      <div>
+        <h1>Flores amarillas para ti niña bonita ♥</h1>
+        <p class="subtitle">Haz clic en el lienzo para sembrar flores.</p>
+      </div>
+      <div class="controls">
+        <button id="ramoBtn">Crear ramo</button>
+        <button id="limpiarBtn" class="secondary">Limpiar</button>
+      </div>
+    </header>
+
+    <main id="canvas" title="Haz clic para crear flores">
+      <div class="flower-label">Clic en cualquier lugar</div>
+      <div class="hint">Clic para plantar 🌼 • Ramo crea varias</div>
+      <div class="frase">"Hoy florecen los jardines, pero mi corazón florece cada vez que pienso en ti."</div>
+    </main>
+
+    <footer>
+      <div style="font-size:13px;color:#374151">Hecho con mucho cariño</div>
+      
+    </footer>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+
+    function createFlower(x, y, size = 60){
+      const el = document.createElement('div');
+      el.className = 'flower';
+      el.style.left = (x - size/2) + 'px';
+      el.style.top = (y - size/2) + 'px';
+      el.style.width = size + 'px';
+      el.style.height = size + 'px';
+      el.style.pointerEvents = 'none';
+
+      const ns = 'http://www.w3.org/2000/svg';
+      const svg = document.createElementNS(ns,'svg');
+      svg.setAttribute('viewBox','0 0 100 100');
+      svg.setAttribute('width','100%');
+      svg.setAttribute('height','100%');
+
+      const petalCount = 8;
+      for(let i=0;i<petalCount;i++){
+        const pet = document.createElementNS(ns,'ellipse');
+        pet.setAttribute('cx','50');
+        pet.setAttribute('cy','25');
+        pet.setAttribute('rx','10');
+        pet.setAttribute('ry','22');
+        pet.setAttribute('fill', i%2===0 ? 'var(--petal)' : 'var(--petal2)');
+        pet.setAttribute('transform',`rotate(${(360/petalCount)*i} 50 50)`);
+        pet.setAttribute('opacity','0.98');
+        svg.appendChild(pet);
+
+        const anim = document.createElementNS(ns,'animateTransform');
+        anim.setAttribute('attributeType','XML');
+        anim.setAttribute('attributeName','transform');
+        anim.setAttribute('type','scale');
+        anim.setAttribute('values','1;1.05;1');
+        anim.setAttribute('dur', (1.8 + Math.random()*1.2) + 's');
+        anim.setAttribute('repeatCount','indefinite');
+        anim.setAttribute('begin', (Math.random()*0.8) + 's');
+        pet.appendChild(anim);
+      }
+
+      const center = document.createElementNS(ns,'circle');
+      center.setAttribute('cx','50');
+      center.setAttribute('cy','50');
+      center.setAttribute('r','12');
+      center.setAttribute('fill','#8b5e00');
+      svg.appendChild(center);
+
+      const stem = document.createElementNS(ns,'path');
+      stem.setAttribute('d','M50 62 C48 85, 48 95, 50 100');
+      stem.setAttribute('stroke','var(--leaf)');
+      stem.setAttribute('stroke-width','3');
+      stem.setAttribute('fill','none');
+      stem.setAttribute('opacity','0.95');
+      svg.appendChild(stem);
+
+      const leaf1 = document.createElementNS(ns,'ellipse');
+      leaf1.setAttribute('cx','44'); leaf1.setAttribute('cy','82'); leaf1.setAttribute('rx','6'); leaf1.setAttribute('ry','10');
+      leaf1.setAttribute('transform','rotate(-25 44 82)'); leaf1.setAttribute('fill','var(--leaf)'); svg.appendChild(leaf1);
+
+      const leaf2 = document.createElementNS(ns,'ellipse');
+      leaf2.setAttribute('cx','56'); leaf2.setAttribute('cy','90'); leaf2.setAttribute('rx','6'); leaf2.setAttribute('ry','10');
+      leaf2.setAttribute('transform','rotate(25 56 90)'); leaf2.setAttribute('fill','var(--leaf)'); svg.appendChild(leaf2);
+
+      el.appendChild(svg);
+      canvas.appendChild(el);
+
+      setTimeout(()=>{
+        el.style.transition = 'opacity 1.2s ease, transform 1.2s ease';
+        el.style.opacity = '0.02';
+        el.style.transform += ' scale(0.6)';
+        setTimeout(()=>el.remove(),1400);
+      }, 9000 + Math.random()*8000);
+    }
+
+    canvas.addEventListener('click', function(ev){
+      const rect = canvas.getBoundingClientRect();
+      const x = ev.clientX - rect.left;
+      const y = ev.clientY - rect.top;
+      const size = 38 + Math.random()*60;
+      createFlower(x,y,size);
+    });
+
+    document.getElementById('ramoBtn').addEventListener('click', ()=>{
+      const rect = canvas.getBoundingClientRect();
+      const cx = rect.width/2, cy = rect.height/2;
+      for(let i=0;i<12;i++){
+        const angle = Math.random()*Math.PI*2;
+        const r = 20 + Math.random()*160;
+        const x = cx + Math.cos(angle)*r + (Math.random()*40-20);
+        const y = cy + Math.sin(angle)*r + (Math.random()*40-20);
+        createFlower(x,y,30 + Math.random()*70);
+      }
+    });
+
+    document.getElementById('limpiarBtn').addEventListener('click', ()=>{
+      document.querySelectorAll('.flower').forEach(n=>n.remove());
+    });
+
+    let touchTimer = null;
+    canvas.addEventListener('touchstart', (e)=>{
+      const t = e.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      touchTimer = setInterval(()=>{
+        const x = t.clientX - rect.left + (Math.random()*30-15);
+        const y = t.clientY - rect.top + (Math.random()*30-15);
+        createFlower(x,y,40 + Math.random()*40);
+      },220);
+    });
+    canvas.addEventListener('touchend', ()=>{ clearInterval(touchTimer); touchTimer = null; });
+  </script>
+</body>
+</html>
